@@ -15,23 +15,47 @@ namespace {
 }
 
 TEST(convert_all_latin1) {
-  for(size_t trial = 0; trial < trials; trial ++) {
+  for (size_t trial = 0; trial < trials; trial++) {
     if ((trial % 100) == 0) { std::cout << "."; std::cout.flush(); }
-      size_t counter = 0;
-      auto generator = [&counter]() -> uint8_t {
-        return counter++ & 0xFF;
-      };
+    size_t counter = 0;
+    auto generator = [&counter]() -> uint8_t {
+      return counter++ & 0xFF;
+    };
 
-      auto procedure = [&implementation](const char* latin1, size_t size, char* utf8) -> size_t {
-        return implementation.convert_latin1_to_utf8(latin1, size, utf8);
-      };
-      auto size_procedure = [&implementation](const char* latin1, size_t size) -> size_t {
-        return implementation.utf8_length_from_latin1(latin1, size); 
-      };
-        
-        simdutf::tests::helpers::transcode_latin1_to_utf8_test_base test(generator, 256);
-        ASSERT_TRUE(test(procedure));
-        ASSERT_TRUE(test.check_size(size_procedure));
+    auto procedure = [&implementation](const char* latin1, size_t size, char* utf8) -> size_t {
+      return implementation.convert_latin1_to_utf8(latin1, size, utf8);
+    };
+    auto size_procedure = [&implementation](const char* latin1, size_t size) -> size_t {
+      return implementation.utf8_length_from_latin1(latin1, size);
+    };
+
+    simdutf::tests::helpers::transcode_latin1_to_utf8_test_base test(generator, 258);
+    ASSERT_TRUE(test(procedure));
+    ASSERT_TRUE(test.check_size(size_procedure));
+  }
+}
+
+TEST(convert_all_latin1_random) {
+  std::random_device rd; // obtain a random number from hardware
+  std::mt19937 gen(rd()); // seed the generator
+  std::uniform_int_distribution<> distr(0, 0xFF);
+
+  for (size_t trial = 0; trial < trials; trial++) {
+    if ((trial % 100) == 0) { std::cout << "."; std::cout.flush(); }
+    auto generator = [&distr, &gen]() -> uint8_t {
+      return distr(gen);
+    };
+
+    auto procedure = [&implementation](const char* latin1, size_t size, char* utf8) -> size_t {
+      return implementation.convert_latin1_to_utf8(latin1, size, utf8);
+    };
+    auto size_procedure = [&implementation](const char* latin1, size_t size) -> size_t {
+      return implementation.utf8_length_from_latin1(latin1, size);
+    };
+
+    simdutf::tests::helpers::transcode_latin1_to_utf8_test_base test(generator, 254);
+    ASSERT_TRUE(test(procedure));
+    ASSERT_TRUE(test.check_size(size_procedure));
   }
 }
 
