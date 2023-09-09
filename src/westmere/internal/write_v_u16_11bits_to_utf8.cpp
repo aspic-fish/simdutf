@@ -1,4 +1,4 @@
-inline size_t write_v_u16_11bits_to_utf8(
+inline void write_v_u16_11bits_to_utf8(
   const __m128i v_u16,
   char*& utf8_output,
   const __m128i one_byte_bytemask,
@@ -44,12 +44,9 @@ inline size_t write_v_u16_11bits_to_utf8(
 
   // 6. adjust pointers
   utf8_output += row[0];
-
-  // 7. return bytes read
-  return 8;
 };
 
-inline size_t write_v_u16_11bits_to_utf8(
+inline void write_v_u16_11bits_to_utf8(
   const __m128i v_u16,
   char*& utf8_output,
   const __m128i v_0000,
@@ -59,6 +56,6 @@ inline size_t write_v_u16_11bits_to_utf8(
   const __m128i one_byte_bytemask = _mm_cmpeq_epi16(_mm_and_si128(v_u16, v_ff80), v_0000);
   const uint16_t one_byte_bitmask = static_cast<uint16_t>(_mm_movemask_epi8(one_byte_bytemask));
 
-  return write_v_u16_11bits_to_utf8(
+  write_v_u16_11bits_to_utf8(
     v_u16, utf8_output, one_byte_bytemask, one_byte_bitmask);
 };

@@ -107,7 +107,8 @@ std::pair<const char16_t*, char*> sse_convert_utf16_to_utf8(const char16_t* buf,
     const uint16_t one_or_two_bytes_bitmask = static_cast<uint16_t>(_mm_movemask_epi8(one_or_two_bytes_bytemask));
 
     if (one_or_two_bytes_bitmask == 0xffff) {
-      buf += internal::westmere::write_v_u16_11bits_to_utf8(in, utf8_output, one_byte_bytemask, one_byte_bitmask);
+      internal::westmere::write_v_u16_11bits_to_utf8(in, utf8_output, one_byte_bytemask, one_byte_bitmask);
+      buf += 8;
       continue;
     }
 
@@ -310,7 +311,8 @@ std::pair<result, char*> sse_convert_utf16_to_utf8_with_errors(const char16_t* b
     const uint16_t one_or_two_bytes_bitmask = static_cast<uint16_t>(_mm_movemask_epi8(one_or_two_bytes_bytemask));
 
     if (one_or_two_bytes_bitmask == 0xffff) {
-      buf += internal::westmere::write_v_u16_11bits_to_utf8(in, utf8_output, one_byte_bytemask, one_byte_bitmask);
+      internal::westmere::write_v_u16_11bits_to_utf8(in, utf8_output, one_byte_bytemask, one_byte_bitmask);
+      buf += 8;
       continue;
     }
 

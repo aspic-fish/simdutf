@@ -55,10 +55,9 @@ std::pair<const char* const, char* const> sse_convert_latin1_to_utf8(
       15, '\x80'
     );
 
-  while (latin_input + 16 <= end) {
+  while (latin_input + 32 <= end) {
     // Load 16 Latin1 characters (16 bytes) into a 128-bit register
     __m128i v_latin = _mm_loadu_si128((__m128i*)latin_input);
-
 
 
     if (_mm_testz_si128(v_latin, v_80)) {// ASCII fast path!!!!
@@ -67,8 +66,6 @@ std::pair<const char* const, char* const> sse_convert_latin1_to_utf8(
       utf8_output += 16;
       continue;
     }
-
-
     
 
     // assuming a/b are bytes and A/B are uint16 of the same value
@@ -78,8 +75,26 @@ std::pair<const char* const, char* const> sse_convert_latin1_to_utf8(
     __m128i v_u16_latin_2_half = _mm_shuffle_epi8(v_latin, latin_2_half_into_u16_byte_mask);
 
 
-    latin_input += internal::westmere::write_v_u16_11bits_to_utf8(v_u16_latin_1_half, utf8_output, v_0000, v_ff80);
-    latin_input += internal::westmere::write_v_u16_11bits_to_utf8(v_u16_latin_2_half, utf8_output, v_0000, v_ff80);
+    internal::westmere::write_v_u16_11bits_to_utf8(v_u16_latin_1_half, utf8_output, v_0000, v_ff80);
+    internal::westmere::write_v_u16_11bits_to_utf8(v_u16_latin_2_half, utf8_output, v_0000, v_ff80);
+    latin_input += 16;
+  }
+
+  if (latin_input + 16 <= end) {
+    // Load 16 Latin1 characters (16 bytes) into a 128-bit register
+    __m128i v_latin = _mm_loadu_si128((__m128i*)latin_input);
+
+    if (_mm_testz_si128(v_latin, v_80)) {// ASCII fast path!!!!
+      _mm_storeu_si128((__m128i*)utf8_output, v_latin);
+      latin_input += 16;
+      utf8_output += 16;
+    } else {
+      // assuming a/b are bytes and A/B are uint16 of the same value
+      // aaaa_aaaa_bbbb_bbbb -> AAAA_AAAA
+      __m128i v_u16_latin_1_half = _mm_shuffle_epi8(v_latin, latin_1_half_into_u16_byte_mask);
+      internal::westmere::write_v_u16_11bits_to_utf8(v_u16_latin_1_half, utf8_output, v_0000, v_ff80);
+      latin_input += 8;
+    }
   }
 
   return std::make_pair(latin_input, utf8_output);
